@@ -227,12 +227,35 @@ footer strong{color:var(--red)}
 .gi-def{font-size:.82rem;color:var(--dark);line-height:1.6}
 .gloss-count{font-size:.72rem;color:var(--mid);margin-bottom:.5rem}
 
+/* NAV LOGO */
+.nav-logo-img{height:30px;max-width:180px;object-fit:contain;display:block}
+
 @media(max-width:900px){
-  .hero-kpis,.cmp-grid,.lev-grid,.chart-grid,.risk-item{grid-template-columns:1fr 1fr}
-  .rdm-tasks{grid-template-columns:1fr}
+  nav{padding:0 1.25rem}
   .nav-links{display:none}
-  .hero-title{font-size:1.8rem}
-  .cr-item{grid-template-columns:130px 1fr 55px}
+  .hero{padding:3rem 1.25rem 2.5rem}
+  .hero-title{font-size:1.7rem}
+  .hero-sub{font-size:.85rem}
+  .hero-kpis{grid-template-columns:1fr 1fr}
+  .cmp-grid{grid-template-columns:1fr}
+  .lev-grid{grid-template-columns:1fr}
+  .chart-grid{grid-template-columns:1fr}
+  .risk-item{grid-template-columns:1fr}
+  .risk-item>*{border-right:none;border-bottom:1px solid var(--border);padding:.7rem 1rem}
+  .rdm-tasks{grid-template-columns:1fr}
+  .gloss-grid{grid-template-columns:1fr}
+  .section{padding:3rem 1.25rem}
+  .cr-item{grid-template-columns:1fr;gap:.4rem}
+  .cr-item>*{text-align:left}
+  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+  .exec-box{padding:1.25rem 1rem}
+}
+
+@media(max-width:480px){
+  .hero-title{font-size:1.4rem}
+  .hero-kpis{grid-template-columns:1fr}
+  .kpi-num{font-size:1.6rem}
+  .nav-logo-img{height:24px}
 }
 </style>
 </head>
@@ -240,7 +263,7 @@ footer strong{color:var(--red)}
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">COFIDIS</div>
+  <img src="Logo/Cofidis-logo-raggi-patti-payoff-BN-Negativo.png" alt="Cofidis" class="nav-logo-img">
   <ul class="nav-links">
     <li><a href="#mix">Channel Mix</a></li>
     <li><a href="#levers">Levas OPTIM</a></li>
