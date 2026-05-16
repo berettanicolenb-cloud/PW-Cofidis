@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cofidis · Dashboard Operativa MMM v3 · Giugno 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0F172A;--card:#1E293B;--card2:#253047;--border:#334155;
+  --text:#E2E8F0;--muted:#94A3B8;--muted2:#64748B;
+  --red:#E2001A;--red-l:rgba(226,0,26,.15);
+  --green:#22C55E;--green-l:rgba(34,197,94,.15);
+  --orange:#F97316;--orange-l:rgba(249,115,22,.15);
+  --yellow:#EAB308;--yellow-l:rgba(234,179,8,.12);
+  --blue:#3B82F6;--blue-l:rgba(59,130,246,.12);
+  --google:#4285F4;--meta:#1877F2;--affil:#F97316;--tiktok:#94A3B8;
+}
+body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:#0A1020;
+  height:52px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.5rem;border-bottom:2px solid var(--red)}
+.nav-left{display:flex;align-items:center;gap:1rem}
+.nav-logo{font-weight:800;font-size:.9rem;letter-spacing:.12em;color:var(--red)}
+.nav-title{font-size:.8rem;color:var(--muted);border-left:1px solid var(--border);padding-left:1rem}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);
+  animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}50%{box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+.nav-right{display:flex;align-items:center;gap:.75rem}
+.nav-chip{background:var(--card);border:1px solid var(--border);border-radius:5px;
+  padding:3px 10px;font-size:.72rem;color:var(--muted)}
+.nav-chip.w2{background:var(--red-l);border-color:var(--red);color:var(--red);font-weight:700}
+#nav-time{font-size:.72rem;color:var(--muted2)}
+
+/* WEEK BANNER */
+.week-banner{background:linear-gradient(135deg,#1a0308 0%,#1E293B 100%);
+  border-bottom:1px solid var(--border);padding:.9rem 1.5rem;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+.wb-left{display:flex;align-items:center;gap:1.25rem}
+.wb-week{font-size:1.2rem;font-weight:800;color:var(--red)}
+.wb-desc{font-size:.82rem;color:var(--muted)}
+.wb-progress{display:flex;align-items:center;gap:.75rem;font-size:.78rem;color:var(--muted)}
+.progress-track{width:140px;height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:var(--red);border-radius:99px;transition:width .5s}
+.wb-right{display:flex;gap:1rem}
+.wb-next{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:.4rem .85rem;font-size:.75rem}
+.wb-next span{color:var(--muted);margin-right:.4rem}
+.wb-next strong{color:var(--yellow)}
+.wb-ovr{display:flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:700}
+
+/* MAIN GRID */
+.main{padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:1.25rem}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:.85rem}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1rem;position:relative;overflow:hidden}
+.kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-g::after{background:var(--green)}.kpi-y::after{background:var(--yellow)}
+.kpi-r::after{background:var(--red)}.kpi-b::after{background:var(--blue)}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.kpi-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.kpi-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.st-g{background:var(--green)}.st-y{background:var(--yellow)}.st-r{background:var(--red)}.st-b{background:var(--blue)}
+.kpi-val{font-size:1.6rem;font-weight:800;line-height:1.1;margin-bottom:.15rem}
+.kpi-val.gv{color:var(--green)}.kpi-val.yv{color:var(--yellow)}.kpi-val.rv{color:var(--red)}
+.kpi-target{font-size:.68rem;color:var(--muted2)}
+.kpi-delta{font-size:.72rem;font-weight:700;margin-top:.15rem}
+.kpi-delta.up{color:var(--green)}.kpi-delta.dn{color:var(--red)}.kpi-delta.wr{color:var(--yellow)}
+.sparkline{width:100%;height:28px;margin-top:.4rem}
+
+/* CHARTS ROW */
+.charts-row{display:grid;grid-template-columns:3fr 2fr;gap:1.25rem}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem}
+.cc-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.2rem}
+.cc-title{font-size:.85rem;font-weight:700}
+.cc-sub{font-size:.72rem;color:var(--muted);margin-bottom:1rem}
+.cc-badge{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:3px;
+  background:var(--red-l);color:var(--red);border:1px solid var(--red)}
+
+/* CHANNEL TABLE */
+.tbl-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.tbl-hdr{padding:.85rem 1.25rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.tbl-title{font-size:.85rem;font-weight:700}
+.tbl-sub{font-size:.72rem;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+thead{background:#162032}
+thead th{padding:.6rem 1rem;text-align:left;font-size:.68rem;font-weight:700;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:hover{background:var(--card2)}
+tbody td{padding:.65rem 1rem;vertical-align:middle}
+.ch-name{display:flex;align-items:center;gap:.5rem;font-weight:700}
+.ch-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.budget-bar-wrap{display:flex;align-items:center;gap:.5rem}
+.budget-bar-bg{flex:1;height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.budget-bar-fill{height:100%;border-radius:99px;transition:width .5s}
+.pct-badge{font-size:.72rem;padding:2px 7px;border-radius:3px;font-weight:700}
+.on-track{background:var(--green-l);color:var(--green)}
+.warn{background:var(--yellow-l);color:var(--yellow)}
+.off{background:var(--red-l);color:var(--red)}
+.neutral{background:rgba(148,163,184,.1);color:var(--muted)}
+.trend-up{color:var(--green);font-weight:700}
+.trend-dn{color:var(--red);font-weight:700}
+.trend-neu{color:var(--muted)}
+.arrow-up::before{content:'↑ '}.arrow-dn::before{content:'↓ '}.arrow-neu::before{content:'→ '}
+
+/* LOWER GRID */
+.lower-grid{display:grid;grid-template-columns:1.4fr 1fr 1.2fr;gap:1.25rem}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.panel-hdr{padding:.75rem 1.1rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:.82rem;font-weight:700}
+.panel-body{padding:.85rem 1.1rem}
+
+/* ROADMAP CHECKLIST */
+.rdm-item{display:flex;align-items:flex-start;gap:.65rem;padding:.6rem 0;
+  border-bottom:1px solid var(--border)}
+.rdm-item:last-child{border-bottom:none}
+.rdm-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.72rem;flex-shrink:0;margin-top:1px;font-weight:700}
+.ri-done{background:var(--green-l);color:var(--green)}
+.ri-live{background:var(--red-l);color:var(--red)}
+.ri-warn{background:var(--yellow-l);color:var(--yellow)}
+.ri-todo{background:var(--border);color:var(--muted)}
+.rdm-content{}
+.rdm-t{font-size:.78rem;font-weight:600;margin-bottom:.1rem}
+.rdm-d{font-size:.7rem;color:var(--muted)}
+.rdm-week{font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:3px;
+  margin-bottom:.2rem;display:inline-block}
+.rw-w1{background:rgba(34,197,94,.15);color:var(--green)}
+.rw-w2{background:var(--red-l);color:var(--red)}
+.rw-w3{background:var(--yellow-l);color:var(--yellow)}
+.rw-w4{background:rgba(148,163,184,.1);color:var(--muted)}
+
+/* PERSONA TABLE */
+.persona-row{display:flex;align-items:center;gap:.6rem;padding:.55rem 0;
+  border-bottom:1px solid var(--border)}
+.persona-row:last-child{border-bottom:none}
+.persona-badge{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;
+  justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0}
+.pb-m{background:rgba(66,133,244,.15);color:var(--google)}
+.pb-e{background:rgba(24,119,242,.15);color:var(--meta)}
+.pb-s{background:rgba(34,197,94,.15);color:var(--green)}
+.persona-info{flex:1}
+.persona-name{font-size:.75rem;font-weight:700;margin-bottom:.1rem}
+.persona-detail{font-size:.67rem;color:var(--muted)}
+.persona-cr{text-align:right}
+.cr-val-big{font-size:.95rem;font-weight:800}
+.cr-sub{font-size:.62rem;color:var(--muted)}
+.mini-bar{margin-top:.25rem;height:4px;background:var(--border);border-radius:99px;overflow:hidden}
+.mini-fill{height:100%;border-radius:99px}
+
+/* ALERT LOG */
+.alert-log{display:flex;flex-direction:column;gap:.5rem;max-height:260px;overflow-y:auto}
+.alert-log::-webkit-scrollbar{width:3px}
+.alert-log::-webkit-scrollbar-track{background:transparent}
+.alert-log::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.alert-item{display:flex;gap:.65rem;padding:.55rem .7rem;border-radius:8px;
+  border:1px solid var(--border);transition:all .3s;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.alert-item.a-red{background:var(--red-l);border-color:rgba(226,0,26,.3)}
+.alert-item.a-yellow{background:var(--yellow-l);border-color:rgba(234,179,8,.3)}
+.alert-item.a-green{background:var(--green-l);border-color:rgba(34,197,94,.3)}
+.alert-item.a-blue{background:var(--blue-l);border-color:rgba(59,130,246,.3)}
+.alert-icon{font-size:.85rem;flex-shrink:0;margin-top:1px}
+.alert-body{}
+.alert-msg{font-size:.72rem;font-weight:600;margin-bottom:.1rem}
+.alert-time{font-size:.62rem;color:var(--muted2)}
+
+/* DECISION POINTS */
+.decisions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem}
+.dec-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1.1rem;position:relative;overflow:hidden}
+.dec-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.dec-active::before{background:var(--yellow)}
+.dec-ok::before{background:var(--green)}
+.dec-future::before{background:var(--border)}
+.dec-critical::before{background:var(--red)}
+.dec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.dec-tag{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 7px;border-radius:3px}
+.dt-active{background:var(--yellow-l);color:var(--yellow)}
+.dt-ok{background:var(--green-l);color:var(--green)}
+.dt-future{background:rgba(148,163,184,.1);color:var(--muted)}
+.dt-critical{background:var(--red-l);color:var(--red)}
+.dec-week{font-size:.65rem;color:var(--muted2)}
+.dec-title{font-size:.88rem;font-weight:700;margin-bottom:.4rem}
+.dec-metric{display:flex;justify-content:space-between;align-items:center;
+  background:#162032;border-radius:6px;padding:.4rem .65rem;margin-bottom:.4rem}
+.dm-label{font-size:.7rem;color:var(--muted)}
+.dm-val{font-size:.85rem;font-weight:800}
+.dm-val.ok{color:var(--green)}.dm-val.warn{color:var(--yellow)}.dm-val.bad{color:var(--red)}.dm-val.na{color:var(--muted2)}
+.dec-threshold{font-size:.68rem;color:var(--muted);margin-bottom:.6rem}
+.dec-action{font-size:.72rem;padding:.35rem .65rem;border-radius:6px;font-weight:600}
+.da-warn{background:var(--yellow-l);color:var(--yellow)}
+.da-ok{background:var(--green-l);color:var(--green)}
+.da-wait{background:rgba(148,163,184,.08);color:var(--muted)}
+.da-act{background:var(--red-l);color:var(--red)}
+
+/* GLOSSARIO DRAWER */
+.gloss-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none}
+.gloss-drawer{position:fixed;top:0;right:0;bottom:0;width:min(540px,95vw);
+  background:#0A1020;border-left:2px solid var(--red);z-index:201;
+  display:flex;flex-direction:column;transform:translateX(105%);
+  transition:transform .3s ease}
+.gloss-drawer.open{transform:translateX(0)}
+.gd-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.gd-title{font-weight:700;font-size:.95rem;color:var(--text)}
+.gd-close{background:var(--card);border:1px solid var(--border);border-radius:6px;
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:.85rem;color:var(--muted);transition:all .15s}
+.gd-close:hover{background:var(--red-l);color:var(--red)}
+.gd-cats{display:flex;flex-wrap:wrap;gap:.5rem;padding:.85rem 1.25rem;
+  border-bottom:1px solid var(--border);flex-shrink:0}
+.gd-cat-btn{background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:.3rem .75rem;font-size:.7rem;font-weight:600;cursor:pointer;
+  color:var(--muted);font-family:inherit;transition:all .15s}
+.gd-cat-btn:hover{border-color:var(--red);color:var(--text)}
+.gd-cat-btn.gda{background:var(--red-l);border-color:var(--red);color:var(--red)}
+.gd-count{padding:.4rem 1.25rem;font-size:.68rem;color:var(--muted2);flex-shrink:0}
+.gd-body{flex:1;overflow-y:auto;padding:.5rem 1.25rem 1.25rem}
+.gd-body::-webkit-scrollbar{width:3px}
+.gd-body::-webkit-scrollbar-track{background:transparent}
+.gd-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.gd-item{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:.9rem 1rem;margin-bottom:.65rem;border-left:3px solid var(--red);
+  animation:gfade2 .2s ease}
+@keyframes gfade2{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.gdi-term{font-size:.88rem;font-weight:800;color:var(--red);margin-bottom:.1rem}
+.gdi-full{font-size:.65rem;font-weight:700;color:var(--muted2);margin-bottom:.45rem;
+  text-transform:uppercase;letter-spacing:.06em}
+.gdi-def{font-size:.78rem;color:var(--muted);line-height:1.6}
+
+/* TOASTS */
+.toast-wrap{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;
+  display:flex;flex-direction:column-reverse;gap:.5rem;pointer-events:none}
+.toast{background:#1E293B;border:1px solid var(--border);border-radius:10px;
+  padding:.75rem 1rem;font-size:.78rem;max-width:300px;
+  transform:translateX(120%);transition:transform .35s ease;pointer-events:auto}
+.toast.show{transform:translateX(0)}
+.toast-title{font-weight:700;margin-bottom:.2rem}
+.toast-body{color:var(--muted);font-size:.72rem}
+.t-g{border-left:3px solid var(--green)}.t-y{border-left:3px solid var(--yellow)}
+.t-r{border-left:3px solid var(--red)}.t-b{border-left:3px solid var(--blue)}
+
+/* FOOTER */
+footer{background:#0A1020;border-top:1px solid var(--border);padding:1rem 1.5rem;
+  font-size:.68rem;color:var(--muted2);display:flex;justify-content:space-between;align-items:center}
+footer strong{color:var(--red)}
+
+/* UTILS */
+.tag{display:inline-block;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:3px}
+
+/* NAV LOGO */
+.nav-logo-img{height:26px;max-width:160px;object-fit:contain;display:block}
+
+@media(max-width:900px){
+  nav{padding:0 1rem}
+  .nav-title{display:none}
+  .nav-chip{display:none}
+  #nav-time{display:none}
+  .kpi-grid{grid-template-columns:repeat(3,1fr)}
+  .charts-row{grid-template-columns:1fr}
+  .lower-grid{grid-template-columns:1fr}
+  .decisions-grid{grid-template-columns:1fr 1fr}
+  .week-banner{flex-direction:column;gap:1rem;padding:.85rem 1rem}
+  .wb-right{flex-direction:row;flex-wrap:wrap;gap:.5rem}
+  .main{padding:1rem}
+  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+}
+
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .decisions-grid{grid-template-columns:1fr}
+  .kpi-val{font-size:1.6rem}
+  .wb-week{font-size:1rem}
+  .nav-logo-img{height:22px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <img src="Logo/Cofidis-logo-raggi-patti-payoff-BN-Negativo.png" alt="Cofidis" class="nav-logo-img">
+  </div>
+  <div class="nav-right">
+    <div class="live-dot"></div>
+    <div class="nav-chip">Pre-lancio · Avvio 1 giu</div>
+    <div class="nav-chip">Giugno 2026 · Always-on</div>
+    <div id="nav-time">11 giu 2026 14:32</div>
+    <button onclick="openGloss()" style="background:var(--card2);border:1px solid var(--border);
+      border-radius:6px;padding:4px 12px;font-size:.72rem;color:var(--muted);cursor:pointer;
+      font-family:inherit;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted)'">
+      📖 Glossario
+    </button>
+  </div>
+</nav>
+
+<!-- WEEK BANNER -->
+<div class="week-banner">
+  <div class="wb-left">
+    <div class="wb-week">Pianificazione · Avvio 1 Giugno 2026</div>
+    <div>
+      <div class="wb-desc">Fase: Preparazione campagna — asset creative, CRM export, setup canali</div>
+      <div class="wb-progress">
+        <div class="progress-track"><div class="progress-fill" style="width:0%"></div></div>
+        <span>Campagna non ancora avviata</span>
+      </div>
+    </div>
+  </div>
+  <div class="wb-right">
+    <div class="wb-next"><span>Prossimo step:</span> <strong>Go-live W1 · 1 giugno</strong></div>
+    <div class="wb-next"><span>CRM export:</span> <strong>Da completare entro 31 mag</strong></div>
+    <div class="wb-ovr" id="overall-status">
+      <div class="kpi-status st-b"></div>
+      <span style="color:var(--blue)">In pianificazione</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- KPI CARDS -->
+<div class="kpi-grid">
+  <!-- Lead Index -->
+  <div class="kpi-card kpi-y">
+    <div class="kpi-top">
+      <div class="kpi-label">Lead Index</div>
+      <div class="kpi-status st-y"></div>
+    </div>
+    <div class="kpi-val yv" id="kpi-li">104.8</div>
+    <div class="kpi-target">Target W4: 113.2 · Baseline: 100</div>
+    <div class="kpi-delta wr" id="kpi-li-d">↑ +4.8 vs baseline · −8.4 vs target</div>
+    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none">
+      <polyline id="sp-li" fill="none" stroke="#EAB308" stroke-width="1.5" points="0,22 25,18 50,15 75,12 100,10"/>
+    </svg>
+  </div>
+  <!-- Meta Share -->
+  <div class="kpi-card kpi-y">
+    <div class="kpi-top">
+      <div class="kpi-label">Meta · Share lead</div>
+      <div class="kpi-status st-y"></div>
+    </div>
+    <div class="kpi-val yv" id="kpi-meta">10.8%</div>
+    <div class="kpi-target">Target W4: ≥ 12% · Alert: &lt; 8%</div>
+    <div class="kpi-delta wr" id="kpi-meta-d">↑ +2.8pt vs baseline · −1.2pt vs target</div>
+    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none">
+      <polyline id="sp-meta" fill="none" stroke="#EAB308" stroke-width="1.5" points="0,24 25,22 50,18 75,15 100,12"/>
+    </svg>
+  </div>
+  <!-- Affil Share -->
+  <div class="kpi-card kpi-g">
+    <div class="kpi-top">
+      <div class="kpi-label">Affiliation · Share lead</div>
+      <div class="kpi-status st-g"></div>
+    </div>
+    <div class="kpi-val gv" id="kpi-affil">22.1%</div>
+    <div class="kpi-target">Target W4: ≤ 20% · Alert: &gt; 28%</div>
+    <div class="kpi-delta up" id="kpi-affil-d">↓ −2.9pt vs baseline · In riduzione ✓</div>
+    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none">
+      <polyline id="sp-affil" fill="none" stroke="#22C55E" stroke-width="1.5" points="0,4 25,8 50,12 75,16 100,18"/>
+    </svg>
+  </div>
+  <!-- Form CR -->
+  <div class="kpi-card kpi-y">
+    <div class="kpi-top">
+      <div class="kpi-label">Form completion rate</div>
+      <div class="kpi-status st-y"></div>
+    </div>
+    <div class="kpi-val yv" id="kpi-cr">46.2%</div>
+    <div class="kpi-target">Target con CRO: ≥ 52% · Alert: &lt; 43%</div>
+    <div class="kpi-delta wr" id="kpi-cr-d">→ Stabile · File .md CRO ricevuto · Lancio A/B W3</div>
+    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none">
+      <polyline id="sp-cr" fill="none" stroke="#EAB308" stroke-width="1.5" points="0,14 25,15 50,13 75,14 100,13"/>
+    </svg>
+  </div>
+  <!-- TikTok CPL -->
+  <div class="kpi-card kpi-y">
+    <div class="kpi-top">
+      <div class="kpi-label">TikTok CPL vs Google</div>
+      <div class="kpi-status st-y"></div>
+    </div>
+    <div class="kpi-val yv" id="kpi-ttk">2.1×</div>
+    <div class="kpi-target">Target: &lt; 2× · Stop pilota: &gt; 3× Google</div>
+    <div class="kpi-delta wr" id="kpi-ttk-d">⚠ Sopra soglia target · Monitorare in W2</div>
+    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none">
+      <polyline id="sp-ttk" fill="none" stroke="#EAB308" stroke-width="1.5" points="0,8 25,10 50,12 75,14 100,15"/>
+    </svg>
+  </div>
+  <!-- Lookalike -->
+  <div class="kpi-card kpi-b">
+    <div class="kpi-top">
+      <div class="kpi-label">Lookalike status</div>
+      <div class="kpi-status st-b"></div>
+    </div>
+    <div class="kpi-val" style="font-size:1rem;font-weight:800;color:var(--blue);padding-top:.3rem">Upload ✓</div>
+    <div class="kpi-target">Matching: 43% Meta · 31% Google</div>
+    <div class="kpi-delta" style="color:var(--blue)">→ Attivazione prevista W3 (15 giu)</div>
+    <div style="margin-top:.5rem;height:6px;background:var(--border);border-radius:99px;overflow:hidden">
+      <div id="lal-bar" style="width:43%;height:100%;background:var(--blue);border-radius:99px;transition:width .5s"></div>
+    </div>
+    <div style="font-size:.62rem;color:var(--muted2);margin-top:.2rem">Matching rate target: &gt; 40%</div>
+  </div>
+</div>
+
+<!-- CHARTS ROW -->
+<div class="charts-row">
+  <div class="chart-card">
+    <div class="cc-hdr">
+      <div>
+        <div class="cc-title">Lead Index settimanale — Actual vs Forecast OPTIM</div>
+        <div class="cc-sub">W1–W4 giugno 2026 · Target finale 113.2 · Levas lookalike attive da W3</div>
+      </div>
+      <div class="cc-badge">Pre-lancio</div>
+    </div>
+    <canvas id="chartTrend" height="160"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="cc-title">Mix budget: Attuale vs Piano OPTIM</div>
+    <div class="cc-sub">% budget per canale · Transizione in corso verso 65/18/14/3</div>
+    <canvas id="chartMix" height="160"></canvas>
+  </div>
+</div>
+
+<!-- CHANNEL TABLE -->
+<div class="tbl-card">
+  <div class="tbl-hdr">
+    <div>
+      <div class="tbl-title">Performance per canale · Dati stimati pre-lancio</div>
+      <div class="tbl-sub">Actual vs target OPTIM · CPL indicizzato su Google = 100</div>
+    </div>
+    <div style="font-size:.72rem;color:var(--muted)">Aggiornato in tempo reale</div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Canale</th>
+        <th>Budget effettivo</th>
+        <th>Budget OPTIM target</th>
+        <th>Lead share attuale</th>
+        <th>Lead share target</th>
+        <th>CPL index</th>
+        <th>Trend CPL</th>
+        <th>Stato</th>
+        <th>Azione</th>
+      </tr>
+    </thead>
+    <tbody id="ch-tbody">
+      <tr>
+        <td><div class="ch-name"><div class="ch-dot" style="background:var(--google)"></div>Google</div></td>
+        <td>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar-bg"><div class="budget-bar-fill" style="width:65%;background:var(--google)"></div></div>
+            <span>65.2%</span>
+          </div>
+        </td>
+        <td style="color:var(--muted)">65%</td>
+        <td><span id="g-lead">61.8%</span></td>
+        <td style="color:var(--muted)">~60%</td>
+        <td><b style="color:var(--text)">100</b></td>
+        <td class="trend-neu arrow-neu">Stabile</td>
+        <td><span class="pct-badge on-track">✓ ON TRACK</span></td>
+        <td style="font-size:.72rem;color:var(--muted)">Abilitare RSA per persona se non attivo</td>
+      </tr>
+      <tr>
+        <td><div class="ch-name"><div class="ch-dot" style="background:var(--affil)"></div>Affiliation</div></td>
+        <td>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar-bg"><div class="budget-bar-fill" id="affil-bar" style="width:22%;background:var(--affil)"></div></div>
+            <span id="affil-bpct">22.1%</span>
+          </div>
+        </td>
+        <td style="color:var(--muted)">18%</td>
+        <td><span id="a-lead">22.1%</span></td>
+        <td style="color:var(--muted)">≤ 20%</td>
+        <td><b id="a-cpl" style="color:var(--orange)">108</b></td>
+        <td class="trend-dn arrow-up">+8% MoM</td>
+        <td><span class="pct-badge warn">⚠ −4pt da fare</span></td>
+        <td style="font-size:.72rem;color:var(--muted)">Completare riduzione −2pt W2 · −2pt W3</td>
+      </tr>
+      <tr>
+        <td><div class="ch-name"><div class="ch-dot" style="background:var(--meta)"></div>Meta</div></td>
+        <td>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar-bg"><div class="budget-bar-fill" id="meta-bar" style="width:11%;background:var(--meta)"></div></div>
+            <span id="meta-bpct">10.8%</span>
+          </div>
+        </td>
+        <td style="color:var(--muted)">14%</td>
+        <td><span id="m-lead">10.8%</span></td>
+        <td style="color:var(--muted)">≥ 12%</td>
+        <td><b style="color:var(--green)">88</b></td>
+        <td class="trend-up arrow-dn">−12% (buono)</td>
+        <td><span class="pct-badge warn">⚠ +3.2pt da fare</span></td>
+        <td style="font-size:.72rem;color:var(--muted)">Completare shift a 14% entro W2</td>
+      </tr>
+      <tr>
+        <td><div class="ch-name"><div class="ch-dot" style="background:var(--tiktok)"></div>TikTok <span class="tag" style="background:rgba(148,163,184,.1);color:var(--muted);font-size:.6rem">PILOT</span></div></td>
+        <td>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar-bg"><div class="budget-bar-fill" style="width:3%;background:var(--tiktok)"></div></div>
+            <span>2.0%</span>
+          </div>
+        </td>
+        <td style="color:var(--muted)">3%</td>
+        <td><span id="t-lead">1.3%</span></td>
+        <td style="color:var(--muted)">~2-3%</td>
+        <td><b id="t-cpl" style="color:var(--yellow)">210</b></td>
+        <td class="trend-dn arrow-up" id="ttk-trend">+learning</td>
+        <td><span class="pct-badge warn" id="ttk-status">⚠ CPL 2.1× Go.</span></td>
+        <td style="font-size:.72rem;color:var(--muted)">Check go/no-go W2 fine settimana</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- LOWER GRID -->
+<div class="lower-grid">
+
+  <!-- ROADMAP CHECKLIST -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-title">Roadmap · Stato avanzamento</div>
+      <div class="tag" style="background:var(--blue-l);color:var(--blue);font-size:.65rem">Pre-lancio</div>
+    </div>
+    <div class="panel-body" style="padding:0">
+      <div style="padding:.4rem .85rem">
+        <div class="rdm-item">
+          <div class="rdm-icon ri-done">✓</div>
+          <div class="rdm-content">
+            <div class="rdm-week rw-w1">W1 · COMPLETATO</div>
+            <div class="rdm-t">Affiliation −3pt · Meta +3pt · Google RSA per persona</div>
+            <div class="rdm-d">Budget ricevuto. Creative caricate. CTR Google +6% su RSA persona.</div>
+          </div>
+        </div>
+        <div class="rdm-item">
+          <div class="rdm-icon ri-done">✓</div>
+          <div class="rdm-content">
+            <div class="rdm-week rw-w1">W1 · COMPLETATO</div>
+            <div class="rdm-t">Upload customer list CRM → Meta + Google</div>
+            <div class="rdm-d">Upload completato. Matching Meta 43%, Google 31%.</div>
+          </div>
+        </div>
+        <div class="rdm-item">
+          <div class="rdm-icon ri-live">●</div>
+          <div class="rdm-content">
+            <div class="rdm-week rw-w2">W2 · IN CORSO</div>
+            <div class="rdm-t">Lancio TikTok pilota 3% · segmento 30-44</div>
+            <div class="rdm-d">Attivo da 11 giu. CPL 2.1× Google — soglia attenzione.</div>
+          </div>
+        </div>
+        <div class="rdm-item">
+          <div class="rdm-icon ri-live">●</div>
+          <div class="rdm-content">
+            <div class="rdm-week rw-w2">W2 · IN CORSO</div>
+            <div class="rdm-t">Meta completare shift a 14% + ottimizzazione adset persona</div>
+            <div class="rdm-d">Attuale 10.8% → target 14%. Da completare entro 14 giu.</div>
+          </div>
+        </div>
+        <div class="rdm-item">
+          <div class="rdm-icon ri-warn">!</div>
+          <div class="rdm-content">
+            <div class="rdm-week rw-w3">W3 · PROSSIMO</div>
+            <div class="rdm-t">Meta LAL 1% attivo + Google RLSA</div>
+            <div class="rdm-d">Matching rate OK. Attivazione prevista 15 giu.</div>
+          </div>
+        </div>
+        <div class="rdm-item">
+          <div class="rdm-icon ri-warn">!</div>
+          <div class="rdm-content">
+            <div class="rdm-week rw-w3">W3 · PROSSIMO</div>
+            <div class="rdm-t">Lancio A/B test CRO — 6 landing persona</div>
+            <div class="rdm-d">Marco: CTA sticky + FAQ aperta vs headline before form. Elena: TAEG prominente vs storia cliente. Senior: trust block vs badge simulatore. Split 50/50 per sorgente. Target: form completion ≥ 52%.</div>
+          </div>
+        </div>
+        <div class="rdm-item">
+          <div class="rdm-icon ri-todo">○</div>
+          <div class="rdm-content">
+            <div class="rdm-week rw-w4">W4 · FUTURO</div>
+            <div class="rdm-t">Report executive + decisioni H2 + lettura A/B CRO</div>
+            <div class="rdm-d">22–30 giu. Lead Index actual vs target 113.2.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERSONA METRICS -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-title">Performance per persona</div>
+      <div style="font-size:.68rem;color:var(--muted)">CR form · Reach</div>
+    </div>
+    <div class="panel-body">
+      <div class="persona-row">
+        <div class="persona-badge pb-m">M</div>
+        <div class="persona-info">
+          <div class="persona-name">Marco · Occupato 35-44</div>
+          <div class="persona-detail">47% audience · Google + Meta</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:62%;background:var(--google)"></div></div>
+        </div>
+        <div class="persona-cr">
+          <div class="cr-val-big" style="color:var(--green)" id="marco-cr">52%</div>
+          <div class="cr-sub">Form CR</div>
+          <div style="font-size:.62rem;color:var(--green)">+5pt vs base</div>
+        </div>
+      </div>
+      <div class="persona-row">
+        <div class="persona-badge pb-e">E</div>
+        <div class="persona-info">
+          <div class="persona-name">Elena · Digitale 35-44</div>
+          <div class="persona-detail">14% audience · Meta + Google</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:48%;background:var(--meta)"></div></div>
+        </div>
+        <div class="persona-cr">
+          <div class="cr-val-big" style="color:var(--yellow)" id="elena-cr">48%</div>
+          <div class="cr-sub">Form CR</div>
+          <div style="font-size:.62rem;color:var(--yellow)">+1pt vs base</div>
+        </div>
+      </div>
+      <div class="persona-row">
+        <div class="persona-badge pb-s">S</div>
+        <div class="persona-info">
+          <div class="persona-name">Senior · Over 55</div>
+          <div class="persona-detail">39% audience · Meta (principale)</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:39%;background:var(--green)"></div></div>
+        </div>
+        <div class="persona-cr">
+          <div class="cr-val-big" style="color:var(--yellow)" id="senior-cr">41%</div>
+          <div class="cr-sub">Form CR</div>
+          <div style="font-size:.62rem;color:var(--muted)">In linea con base</div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border)">
+        <div style="font-size:.7rem;font-weight:700;color:var(--muted);margin-bottom:.5rem">INSIGHT PERSONA</div>
+        <div style="font-size:.72rem;color:var(--muted);line-height:1.5">
+          Marco risponde meglio alle creative personalizzate (+5pt CR).
+          Senior sotto-performante: aumentare budget Meta Over 55
+          dopo attivazione LAL W3.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERT LOG -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-title">Log alert</div>
+      <div id="alert-count" class="tag" style="background:var(--yellow-l);color:var(--yellow);font-size:.65rem">3 nuovi</div>
+    </div>
+    <div class="panel-body">
+      <div class="alert-log" id="alert-log">
+        <div class="alert-item a-yellow">
+          <div class="alert-icon">⚠</div>
+          <div class="alert-body">
+            <div class="alert-msg">TikTok CPL 2.1× Google — soglia attenzione</div>
+            <div class="alert-time">11 giu · 14:20 · Canale: TikTok</div>
+          </div>
+        </div>
+        <div class="alert-item a-yellow">
+          <div class="alert-icon">⚠</div>
+          <div class="alert-body">
+            <div class="alert-msg">Meta share 10.8% — +3.2pt da fare entro W2</div>
+            <div class="alert-time">11 giu · 13:45 · Canale: Meta</div>
+          </div>
+        </div>
+        <div class="alert-item a-blue">
+          <div class="alert-icon">ℹ</div>
+          <div class="alert-body">
+            <div class="alert-msg">Lookalike upload completato — matching 43% Meta</div>
+            <div class="alert-time">10 giu · 09:15 · CRM → Meta</div>
+          </div>
+        </div>
+        <div class="alert-item a-green">
+          <div class="alert-icon">✓</div>
+          <div class="alert-body">
+            <div class="alert-msg">Google RSA per persona attivi — Ad strength Eccellente</div>
+            <div class="alert-time">08 giu · 11:30 · Canale: Google</div>
+          </div>
+        </div>
+        <div class="alert-item a-green">
+          <div class="alert-icon">✓</div>
+          <div class="alert-body">
+            <div class="alert-msg">Affiliation in riduzione: 25% → 22.1% ✓</div>
+            <div class="alert-time">08 giu · 09:00 · Canale: Affiliation</div>
+          </div>
+        </div>
+        <div class="alert-item a-green">
+          <div class="alert-icon">✓</div>
+          <div class="alert-body">
+            <div class="alert-msg">TikTok pilota attivato — segmento 30-44, A/B live</div>
+            <div class="alert-time">10 giu · 08:00 · Canale: TikTok</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DECISION POINTS -->
+<div class="tbl-hdr" style="background:var(--card);border-radius:12px 12px 0 0;border:1px solid var(--border);margin-bottom:-1px">
+  <div>
+    <div class="tbl-title">Decision Points — Checkpoint operativi</div>
+    <div class="tbl-sub">Metriche che richiedono una decisione · Soglie go/no-go · Aggiornate in tempo reale</div>
+  </div>
+</div>
+<div class="decisions-grid" style="margin-top:0">
+
+  <div class="dec-card dec-active">
+    <div class="dec-head">
+      <span class="dec-tag dt-active">⚠ ATTENZIONE</span>
+      <span class="dec-week">W2 · Check entro 14 giu</span>
+    </div>
+    <div class="dec-title">TikTok Pilota — Go / No-Go</div>
+    <div class="dec-metric">
+      <span class="dm-label">CPL TikTok vs Google</span>
+      <span class="dm-val warn" id="dp-ttk-cpl">2.1×</span>
+    </div>
+    <div class="dec-threshold">Soglia GO: &lt; 2× · Soglia STOP: &gt; 3× · Zona attenzione: 2-3×</div>
+    <div class="dec-action da-warn">
+      ⚠ Zona gialla. Attendere fine W2 prima di decidere.
+      Se CPL stabile &lt; 2.5× → GO luglio.
+    </div>
+  </div>
+
+  <div class="dec-card dec-active">
+    <div class="dec-head">
+      <span class="dec-tag dt-active">PREP W3</span>
+      <span class="dec-week">W3 · Attivazione 15 giu</span>
+    </div>
+    <div class="dec-title">Lookalike Meta + Google RLSA</div>
+    <div class="dec-metric">
+      <span class="dm-label">Matching rate Meta</span>
+      <span class="dm-val warn" id="dp-lal">43%</span>
+    </div>
+    <div class="dec-threshold">Soglia minima: &gt; 40% Meta · &gt; 30% Google · ✓ Entrambe superate</div>
+    <div class="dec-action da-ok">
+      ✓ Pronto per attivazione W3. Abilitare LAL 1% su Meta.
+      Impostare RLSA bid +20% su Google Customer Match.
+    </div>
+  </div>
+
+  <div class="dec-card dec-future">
+    <div class="dec-head">
+      <span class="dec-tag dt-future">W3 · PROSSIMO</span>
+      <span class="dec-week">Lancio 15 giu</span>
+    </div>
+    <div class="dec-title">A/B Test CRO — 6 Landing Persona</div>
+    <div class="dec-metric">
+      <span class="dm-label">Form completion attuale</span>
+      <span class="dm-val na" id="dp-cro">46.2%</span>
+    </div>
+    <div class="dec-threshold">Target variante B: ≥ 52% · Rollback se &lt; 43% · File .md evolutive: ricevuto ✓</div>
+    <div class="dec-action da-wait">
+      → File .md analizzato. 6 varianti definite: Marco (CTA sticky / no CLUB), Elena (TAEG above fold vs testimonianza), Senior (trust block vs badge simulatore). Sviluppo landing W3.
+    </div>
+  </div>
+
+  <div class="dec-card dec-future">
+    <div class="dec-head">
+      <span class="dec-tag dt-future">W4 · FUTURO</span>
+      <span class="dec-week">22–30 giu</span>
+    </div>
+    <div class="dec-title">Report Executive + Decisioni H2</div>
+    <div class="dec-metric">
+      <span class="dm-label">Lead Index proiezione W4</span>
+      <span class="dm-val na" id="dp-w4">~109</span>
+    </div>
+    <div class="dec-threshold">Target: 113.2 · Con lookalike W3 e CRO: proiezione aggiornata</div>
+    <div class="dec-action da-wait">
+      → Preparare slide confronto actual vs forecast.
+      Proposta budget luglio: TikTok scale/pause, LAL 2-3%.
+    </div>
+  </div>
+
+</div>
+
+</div><!-- end main -->
+
+<!-- FOOTER -->
+<footer>
+  <span><strong>COFIDIS</strong> · Dashboard Operativa MMM v3 · Piano A vs OPTIM · Giugno 2026 · Always-on</span>
+  <span>Project Work TAG Winter 2026 · Modulo 8 — Massimiliano Pavesio · Dati simulati a scopo dimostrativo</span>
+</footer>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- GLOSSARIO DRAWER -->
+<div class="gloss-overlay" id="gloss-overlay" onclick="closeGloss()"></div>
+<div class="gloss-drawer" id="gloss-drawer">
+  <div class="gd-hdr">
+    <div class="gd-title">📖 Glossario Termini Tecnici</div>
+    <button class="gd-close" onclick="closeGloss()">✕</button>
+  </div>
+  <div class="gd-cats" id="gd-cats"></div>
+  <div class="gd-count" id="gd-count"></div>
+  <div class="gd-body" id="gd-body"></div>
+</div>
+
+<script>
+const GLOSS_D = [
+  { cat:'MMM & Modellazione', icon:'📊', terms:[
+    { t:'MMM', f:'Marketing Mix Modelling',
+      d:'Metodologia statistica che misura il contributo di ogni canale alle conversioni usando dati aggregati storici. Non dipende da cookie: immune alle restrizioni DMA. Il Lead Index di questo progetto è calcolato con MMM su indici.' },
+    { t:'Lead Index', f:'Indice di volume lead normalizzato',
+      d:'Indice che misura il volume relativo di lead generati. Piano A = 100 (baseline). Formula: Σ(quota × efficienza_base × leva_moltiplicatore). Piano OPTIM target W4 = 113.2 → +13.2% a parità di budget.' },
+    { t:'Saturazione', f:'Livello di maturità del canale',
+      d:'Indica quanto un canale è "maturo". > 1.0 = saturo (rendimenti decrescenti). < 1.0 = sotto-investito. Google: 0.85. Affiliation: 1.10 (saturo — da ridurre). Meta: 0.70 (sotto-investito — da aumentare).' },
+    { t:'Efficienza marginale', f:'Rendimento dell\'ultimo euro investito',
+      d:'Quanto rende ogni euro aggiuntivo in un canale. Alta = vale aumentare. Bassa = rendimenti decrescenti. Meta (1.30) ha la più alta efficienza marginale del portafoglio vs Affiliation (0.90).' },
+    { t:'Leva moltiplicatore', f:'Coefficiente di ottimizzazione attiva',
+      d:'Amplifica l\'efficienza di base grazie a ottimizzazioni attive (creative per persona, lookalike, CRO). Esempio: Google ×1.12 (+8% creative + +4% RLSA partial). Aggiornato man mano che le levas si attivano.' },
+  ]},
+  { cat:'Attribution', icon:'🔗', terms:[
+    { t:'Last Click', f:'Attribuzione all\'ultimo click',
+      d:'Attribuisce il 100% del credito all\'ultimo canale prima della conversione. Distorce verso Affiliation (cattura spesso l\'ultimo click dai comparatori) penalizzando Meta e Social che lavorano sull\'awareness.' },
+    { t:'DDA', f:'Data-Driven Attribution (Google)',
+      d:'Modello algoritmico che usa dati reali per pesare ogni touchpoint. Degradato da DMA + ad_user_data negato su audience 35-54. Per questo motivo il MMM su indici aggregati è il modello principale per le decisioni budget.' },
+    { t:'DMA', f:'Digital Markets Act',
+      d:'Regolamento europeo che limita la raccolta dati da parte dei gatekeeper (Google, Meta). Degrada il segnale DDA cross-device — soprattutto su Over 55 che hanno bassa propensione al consenso cookie.' },
+    { t:'ad_user_data', f:'Segnale di consenso advertising',
+      d:'Segnale utente per permettere l\'uso dei dati in targeting personalizzato. Se negato, degrada lookalike e DDA. Frequente su audience Over 55 (39% del totale Cofidis). Il MMM su indici è immune a questo problema.' },
+  ]},
+  { cat:'Canali & Targeting', icon:'📡', terms:[
+    { t:'Lookalike (LAL)', f:'Lookalike Audience',
+      d:'Audience che replica le caratteristiche dei clienti esistenti (seed = customer list CRM). LAL 1% = audience molto simile al seed. Matching rate attuale: Meta 43% (threshold > 40% ✓), Google 31% (threshold > 30% ✓). Attivazione W3.' },
+    { t:'RLSA', f:'Remarketing Lists for Search Ads',
+      d:'Feature Google per modificare le bid su utenti che hanno già visitato il sito. Nel piano OPTIM: bid +20% su Customer Match. Attivazione prevista W3 (15 giu) insieme al LAL Meta.' },
+    { t:'Customer Match', f:'Corrispondenza lista clienti',
+      d:'Upload lista CRM (email/telefono) su Google e Meta per targetizzare utenti noti e creare lookalike. Il Matching Rate è la % riconosciuta dalla piattaforma. Più alto = lookalike più qualificato.' },
+    { t:'CPL', f:'Cost Per Lead',
+      d:'Costo per acquisire un lead (compilazione form). Nel monitoring, il CPL TikTok viene confrontato con il CPL Google (indice 100). Soglia attenzione: > 2×. Soglia stop pilota: > 3×.' },
+    { t:'CTR', f:'Click-Through Rate',
+      d:'% di utenti che cliccano sull\'annuncio vs. impressioni. Le creative per persona mirano a +8-15% CTR vs. creative generiche. Impatta il Quality Score Google e quindi il CPL.' },
+    { t:'RSA', f:'Responsive Search Ads',
+      d:'Formato annuncio Google con titoli e descrizioni combinati automaticamente per massima performance. Nel piano OPTIM: 3 set RSA per persona (Marco, Elena, Senior). Ad strength target: ≥ Eccellente.' },
+  ]},
+  { cat:'CRO & Landing', icon:'🎯', terms:[
+    { t:'CRO', f:'Conversion Rate Optimization',
+      d:'Per Cofidis: 6 landing personalizzate per 3 personas — 2 A/B per target. Marco (velocità): CTA sticky, FAQ aperta, no CLUB banner. Elena (trasparenza): TAEG above fold vs storia cliente Martina R. Senior (fiducia): Brand Trust Block vs badge simulatore + telefono visibile. Uplift stimato: +7–9% per persona. Effettivo giugno: +7% (parziale W3–W4).' },
+    { t:'Form Completion Rate', f:'Tasso di completamento form',
+      d:'% utenti che completano il form. Attuale: ~46%. Target CRO: ≥ 52% (W3–W4). Cause di abbandono: attrito percepito (Marco, −15–25% per step non anticipato), TAEG nascosto = sfiducia attiva (Elena), ansia digitale + firma non demistificata (Senior). Alert: &lt; 43%.' },
+    { t:'A/B test', f:'Split test tra variante A e B',
+      d:'Una sola variabile strutturale testata per target: Marco (azione immediata vs convincimento prima), Elena (simulatore trasparente vs storia cliente), Senior (trust block before form vs badge nel simulatore). Split 50/50 per sorgente. Significatività: p &lt; 0.05 con ≥ 2 settimane. Lancio W3, lettura W4.' },
+    { t:'Mobile-first', f:'Design orientato al mobile',
+      d:'91% del traffico Cofidis è mobile. Ogni step form non anticipato riduce il completion rate del 15–25% (benchmark settore). Interventi: font ≥ 18px (Senior), CTA sticky (Marco + Senior), TAEG above fold senza scroll (Elena), firma digitale come analogia bancomat (Senior).' },
+  ]},
+  { cat:'Piano OPTIM', icon:'🚀', terms:[
+    { t:'Piano A (Baseline)', f:'Mix corrente senza modifiche',
+      d:'Google 67% / Affiliation 25% / Meta 8% / TikTok 0%. Lead Index = 100. Problema: Affiliation satura (CPL crescente), Meta sotto-investita (alta eff. marginale). Punto di riferimento per tutti i KPI.' },
+    { t:'Piano OPTIM', f:'Mix raccomandato con 3 levas',
+      d:'Google 65% / Affiliation 18% / Meta 14% / TikTok 3% + creative per persona + lookalike + CRO. Lead Index target: 113.2 (+13.2%). Budget invariato. La transizione è in corso (W2).' },
+    { t:'W1/W2/W3/W4', f:'Settimane operative giugno 2026',
+      d:'W1: reallocation + creative. W2: TikTok pilot + upload CRM (in corso). W3: lookalike live + CRO A/B. W4: full review + decisioni H2. Ogni settimana ha checkpoint go/no-go specifici visibili in questa dashboard.' },
+    { t:'Always-on', f:'Campagna continuativa',
+      d:'Campagna sempre attiva (vs. speciali temporanee come promo TAEG). Regola Cofidis: always-on e special TAEG NON simultanei. Verificare calendario promo prima di ogni attivazione.' },
+    { t:'Go/No-Go', f:'Decisione binaria a checkpoint',
+      d:'Valutazione di una metrica contro una soglia predefinita che determina se continuare o fermare una strategia. Es: TikTok CPL > 3× Google = NO-GO (stop pilota, riallocare budget su Meta).' },
+  ]},
+  { cat:'Personas & Audience', icon:'👥', terms:[
+    { t:'Marco', f:'Persona 1 — 35-44 occupato, urgenza finanziaria',
+      d:'47% dell\'audience. Cerca liquidità rapida per esigenze concrete. Canali: Google Search (query intenzionali) + Meta (targeting interesse finanziario). Risponde meglio a messaggi di urgenza e semplicità. CR attuale: ~52%.' },
+    { t:'Elena', f:'Persona 2 — 35-44 digitale, autonomia',
+      d:'14% dell\'audience. Gestisce le finanze in autonomia, usa il digitale attivamente. Canale: Meta (video engagement) + Google. Risponde a messaggi di controllo e trasparenza. CR attuale: ~48%.' },
+    { t:'Senior', f:'Persona 3 — Over 55, sicurezza e semplicità',
+      d:'39% dell\'audience. Converte con più touchpoint prima del click finale — fortemente sotto-misurato dal Last Click. Canale principale: Meta. CR attuale: ~41% — da migliorare con CRO form semplificato.' },
+    { t:'Matching Rate', f:'Tasso di riconoscimento customer list',
+      d:'% della customer list CRM riconosciuta dalla piattaforma (via email o telefono). Attuale: Meta 43% (target > 40% ✓), Google 31% (target > 30% ✓). Permette attivazione lookalike W3.' },
+  ]},
+];
+
+function openGloss() {
+  document.getElementById('gloss-overlay').style.display = 'block';
+  document.getElementById('gloss-drawer').classList.add('open');
+  if (!document.getElementById('gd-cats').hasChildNodes()) renderGlossary();
+}
+function closeGloss() {
+  document.getElementById('gloss-overlay').style.display = 'none';
+  document.getElementById('gloss-drawer').classList.remove('open');
+}
+function renderGlossary() {
+  const cats = document.getElementById('gd-cats');
+  const body = document.getElementById('gd-body');
+  const cnt  = document.getElementById('gd-count');
+
+  function showCat(cat, btn) {
+    cats.querySelectorAll('.gd-cat-btn').forEach(b => b.classList.remove('gda'));
+    btn.classList.add('gda');
+    body.innerHTML = cat.terms.map(t =>
+      `<div class="gd-item">
+        <div class="gdi-term">${t.t}</div>
+        <div class="gdi-full">${t.f}</div>
+        <div class="gdi-def">${t.d}</div>
+      </div>`
+    ).join('');
+    cnt.textContent = cat.terms.length + ' termini · ' + cat.cat;
+    body.scrollTop = 0;
+  }
+
+  GLOSS_D.forEach((cat, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'gd-cat-btn' + (i === 0 ? ' gda' : '');
+    btn.textContent = cat.icon + ' ' + cat.cat;
+    btn.onclick = () => showCat(cat, btn);
+    cats.appendChild(btn);
+    if (i === 0) showCat(cat, btn);
+  });
+}
+</script>
+
+<script>
+// ─── DATI BASE ────────────────────────────────────────────────────────────────
+const TARGETS = {
+  li: 113.2, metaShare: 12, affilShare: 20,
+  formCr: 50, ttkCpl: 2.0, lalMin: 40
+};
+
+const state = {
+  li: 104.8, metaShare: 10.8, affilShare: 22.1,
+  formCr: 46.2, ttkCpl: 2.1, lalMatch: 43,
+  tick: 0
+};
+
+// ─── CHART 1: LEAD INDEX TREND ────────────────────────────────────────────────
+const trendCtx = document.getElementById('chartTrend').getContext('2d');
+const trendLabels = ['W1 Inizio','W1 Fine','W2 Inizio','W2 (ora)','W3 (est.)','W4 (est.)'];
+const trendActual = [100.2, 101.8, 103.4, 104.8, null, null];
+const trendForecast = [100.2, 101.8, 103.4, 104.8, 109.0, 113.2];
+const trendTarget = [100, 100, 100, 100, 100, 113.2];
+
+const chartTrend = new Chart(trendCtx, {
+  type: 'line',
+  data: {
+    labels: trendLabels,
+    datasets: [
+      {
+        label: 'Actual',
+        data: trendActual,
+        borderColor: '#E2001A',
+        backgroundColor: 'rgba(226,0,26,.1)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#E2001A',
+        pointRadius: 5,
+        tension: 0.3,
+        fill: true,
+        spanGaps: false,
+      },
+      {
+        label: 'Forecast OPTIM',
+        data: trendForecast,
+        borderColor: '#94A3B8',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 3,
+        pointBackgroundColor: '#94A3B8',
+        tension: 0.3,
+        fill: false,
+      },
+      {
+        label: 'Target (113.2)',
+        data: [113.2, 113.2, 113.2, 113.2, 113.2, 113.2],
+        borderColor: '#22C55E',
+        borderWidth: 1,
+        borderDash: [3, 3],
+        pointRadius: 0,
+        fill: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { color: '#94A3B8', font: { size: 10 }, boxWidth: 14 } },
+      tooltip: { backgroundColor: '#1E293B', borderColor: '#334155', borderWidth: 1,
+        titleColor: '#E2E8F0', bodyColor: '#94A3B8',
+        callbacks: { label: c => c.dataset.label + ': ' + (c.raw !== null ? c.raw.toFixed(1) : '—') }
+      }
+    },
+    scales: {
+      y: { min: 95, max: 120,
+        grid: { color: '#1E293B' },
+        ticks: { color: '#64748B', font: { size: 10 } }
+      },
+      x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 10 } } }
+    }
+  }
+});
+
+// ─── CHART 2: MIX BUDGET ──────────────────────────────────────────────────────
+const mixCtx = document.getElementById('chartMix').getContext('2d');
+const chartMix = new Chart(mixCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Google', 'Affiliation', 'Meta', 'TikTok'],
+    datasets: [
+      { label: 'Attuale', data: [65.2, 22.1, 10.8, 1.9],
+        backgroundColor: ['#4285F4','#F97316','#1877F2','#475569'],
+        borderRadius: 4 },
+      { label: 'Target OPTIM', data: [65, 18, 14, 3],
+        backgroundColor: ['rgba(66,133,244,.25)','rgba(249,115,22,.25)',
+                         'rgba(24,119,242,.25)','rgba(71,85,105,.25)'],
+        borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { color: '#94A3B8', font: { size: 10 }, boxWidth: 14 } },
+      tooltip: { backgroundColor: '#1E293B', borderColor: '#334155', borderWidth: 1,
+        titleColor: '#E2E8F0', bodyColor: '#94A3B8',
+        callbacks: { label: c => c.dataset.label + ': ' + c.raw + '%' }
+      }
+    },
+    scales: {
+      y: { grid: { color: '#1E293B' }, ticks: { color: '#64748B', font: { size: 10 }, callback: v => v + '%' } },
+      x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 10 } } }
+    }
+  }
+});
+
+// ─── SPARKLINES ───────────────────────────────────────────────────────────────
+function drawSparkline(id, values, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const max = Math.max(...values), min = Math.min(...values);
+  const range = max - min || 1;
+  const pts = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * 100;
+    const y = 26 - ((v - min) / range) * 22;
+    return `${x},${y}`;
+  }).join(' ');
+  el.setAttribute('points', pts);
+  el.setAttribute('stroke', color);
+}
+
+const sparkData = {
+  'sp-li':    { vals: [100, 101.2, 102.8, 104.8], color: '#EAB308' },
+  'sp-meta':  { vals: [8, 9.2, 10.1, 10.8], color: '#EAB308' },
+  'sp-affil': { vals: [25, 24.1, 23.0, 22.1], color: '#22C55E' },
+  'sp-cr':    { vals: [47.1, 46.5, 46.8, 46.2], color: '#EAB308' },
+  'sp-ttk':   { vals: [0, 0, 2.3, 2.1], color: '#EAB308' },
+};
+Object.entries(sparkData).forEach(([id, d]) => drawSparkline(id, d.vals, d.color));
+
+// ─── SIMULAZIONE LIVE ─────────────────────────────────────────────────────────
+const toasts = [
+  { t: 1, type: 'y', title: 'TikTok CPL W2', body: 'CPL 2.1× Google — zona attenzione. Check venerdì.' },
+  { t: 2, type: 'b', title: 'Lookalike ready', body: 'Matching rate 43% Meta. Attivazione confermata per W3.' },
+  { t: 4, type: 'g', title: 'Meta performance', body: 'Adset Elena CTR +8% vs broad. Spostare budget.' },
+  { t: 6, type: 'y', title: 'Affiliation CPL', body: 'CPL Affiliation +8% MoM — continua riduzione budget.' },
+  { t: 8, type: 'g', title: 'Google RSA', body: 'RSA persona Marco: Conv. rate +6% vs RSA standard.' },
+  { t: 10, type: 'b', title: 'W3 in 3 giorni', body: 'Lookalike Meta attivazione + RLSA Google previsti 15 giu.' },
+];
+
+const alertTemplates = [
+  { type: 'a-blue', icon: 'ℹ', msg: 'Google RLSA — bid adjustment preparato per W3', time: '11 giu · 14:35' },
+  { type: 'a-green', icon: '✓', msg: 'Meta adset Elena CTR +8% vs broad audience', time: '11 giu · 14:28' },
+  { type: 'a-yellow', icon: '⚠', msg: 'Senior form CR 41% — sotto media. Verificare creative.', time: '11 giu · 14:10' },
+  { type: 'a-blue', icon: 'ℹ', msg: 'TikTok A/B: variante tutorial +15% view time vs testimonial', time: '11 giu · 13:50' },
+];
+let alertIdx = 0;
+
+function showToast(type, title, body) {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = `toast t-${type}`;
+  t.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${body}</div>`;
+  wrap.appendChild(t);
+  requestAnimationFrame(() => { requestAnimationFrame(() => { t.classList.add('show'); }); });
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 400);
+  }, 4500);
+}
+
+function addAlert(tpl) {
+  const log = document.getElementById('alert-log');
+  const el = document.createElement('div');
+  el.className = `alert-item ${tpl.type}`;
+  el.innerHTML = `<div class="alert-icon">${tpl.icon}</div>
+    <div class="alert-body">
+      <div class="alert-msg">${tpl.msg}</div>
+      <div class="alert-time">${tpl.time}</div>
+    </div>`;
+  log.insertBefore(el, log.firstChild);
+  const cnt = document.getElementById('alert-count');
+  const n = parseInt(cnt.textContent) + 1;
+  cnt.textContent = n + ' nuovi';
+}
+
+function updateTime() {
+  const d = new Date(2026, 5, 11, 14, 32);
+  d.setSeconds(d.getSeconds() + state.tick * 5);
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  document.getElementById('nav-time').textContent = `11 giu 2026 ${hh}:${mm}`;
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function jitter(v, range) { return v + (Math.random() - 0.5) * range; }
+
+function tick() {
+  state.tick++;
+  const t = state.tick;
+
+  // drift values
+  state.li = Math.min(110, jitter(state.li + 0.12, 0.3));
+  state.metaShare = Math.min(13.5, jitter(state.metaShare + 0.08, 0.2));
+  state.affilShare = Math.max(19.5, jitter(state.affilShare - 0.06, 0.2));
+  state.formCr = jitter(state.formCr + 0.02, 0.3);
+  state.ttkCpl = jitter(state.ttkCpl - 0.02, 0.15);
+  state.lalMatch = Math.min(48, state.lalMatch + 0.1);
+
+  // update KPIs
+  document.getElementById('kpi-li').textContent = state.li.toFixed(1);
+  document.getElementById('kpi-meta').textContent = state.metaShare.toFixed(1) + '%';
+  document.getElementById('kpi-affil').textContent = state.affilShare.toFixed(1) + '%';
+  document.getElementById('kpi-cr').textContent = state.formCr.toFixed(1) + '%';
+  document.getElementById('kpi-ttk').textContent = state.ttkCpl.toFixed(2) + '×';
+  document.getElementById('lal-bar').style.width = state.lalMatch.toFixed(1) + '%';
+
+  // update delta texts
+  const gapLi = (TARGETS.li - state.li).toFixed(1);
+  document.getElementById('kpi-li-d').textContent = `↑ +${(state.li-100).toFixed(1)} vs baseline · −${gapLi} vs target`;
+  document.getElementById('kpi-meta-d').textContent = state.metaShare >= 12
+    ? `✓ Raggiunto target · +${(state.metaShare-8).toFixed(1)}pt vs baseline`
+    : `↑ +${(state.metaShare-8).toFixed(1)}pt vs baseline · −${(12-state.metaShare).toFixed(1)}pt vs target`;
+  document.getElementById('kpi-affil-d').textContent = state.affilShare <= 20
+    ? `✓ Target raggiunto · −${(25-state.affilShare).toFixed(1)}pt vs baseline`
+    : `↓ −${(25-state.affilShare).toFixed(1)}pt vs baseline · −${(state.affilShare-20).toFixed(1)}pt dal target`;
+  document.getElementById('kpi-ttk-d').textContent = state.ttkCpl < 2
+    ? `✓ Sotto soglia GO · ${state.ttkCpl.toFixed(2)}× Google`
+    : `⚠ ${state.ttkCpl.toFixed(2)}× Google · Monitorare in W2`;
+
+  // update table
+  document.getElementById('meta-bpct').textContent = state.metaShare.toFixed(1) + '%';
+  document.getElementById('meta-bar').style.width = state.metaShare + '%';
+  document.getElementById('m-lead').textContent = state.metaShare.toFixed(1) + '%';
+  document.getElementById('affil-bpct').textContent = state.affilShare.toFixed(1) + '%';
+  document.getElementById('affil-bar').style.width = state.affilShare + '%';
+  document.getElementById('a-lead').textContent = state.affilShare.toFixed(1) + '%';
+  const ttkCplIdx = Math.round(state.ttkCpl * 100);
+  document.getElementById('t-cpl').textContent = ttkCplIdx;
+  document.getElementById('t-cpl').style.color = state.ttkCpl < 2 ? 'var(--green)' : state.ttkCpl < 2.5 ? 'var(--yellow)' : 'var(--red)';
+
+  // update decision points
+  document.getElementById('dp-ttk-cpl').textContent = state.ttkCpl.toFixed(2) + '×';
+  document.getElementById('dp-ttk-cpl').className = 'dm-val ' + (state.ttkCpl < 2 ? 'ok' : state.ttkCpl < 2.5 ? 'warn' : 'bad');
+  document.getElementById('dp-lal').textContent = state.lalMatch.toFixed(1) + '%';
+  document.getElementById('dp-cro').textContent = state.formCr.toFixed(1) + '%';
+
+  // update chart trend
+  chartTrend.data.datasets[0].data[3] = parseFloat(state.li.toFixed(1));
+  chartTrend.data.datasets[1].data[3] = parseFloat(state.li.toFixed(1));
+  chartTrend.update('none');
+
+  // update mix chart
+  chartMix.data.datasets[0].data[2] = parseFloat(state.metaShare.toFixed(1));
+  chartMix.data.datasets[0].data[1] = parseFloat(state.affilShare.toFixed(1));
+  chartMix.update('none');
+
+  // TikTok status badge
+  const ttkStatus = document.getElementById('ttk-status');
+  if (state.ttkCpl < 2) {
+    ttkStatus.textContent = '✓ CPL OK';
+    ttkStatus.className = 'pct-badge on-track';
+  } else if (state.ttkCpl < 2.5) {
+    ttkStatus.textContent = `⚠ CPL ${state.ttkCpl.toFixed(1)}× Go.`;
+    ttkStatus.className = 'pct-badge warn';
+  } else {
+    ttkStatus.textContent = `🔴 CPL ${state.ttkCpl.toFixed(1)}× STOP`;
+    ttkStatus.className = 'pct-badge off';
+  }
+
+  // W4 projection (simple linear estimate)
+  const proj = (state.li + 3.2 + (state.metaShare >= 12 ? 1.5 : 0)).toFixed(0);
+  document.getElementById('dp-w4').textContent = '~' + proj;
+
+  // persona micro-updates
+  document.getElementById('marco-cr').textContent = jitter(52, 1.2).toFixed(1) + '%';
+  document.getElementById('elena-cr').textContent = jitter(48, 1.0).toFixed(1) + '%';
+  document.getElementById('senior-cr').textContent = jitter(41, 1.5).toFixed(1) + '%';
+
+  // sparkline update
+  const spLiEl = document.getElementById('sp-li');
+  if (spLiEl) {
+    const prev = sparkData['sp-li'].vals;
+    prev.push(state.li);
+    if (prev.length > 8) prev.shift();
+    drawSparkline('sp-li', prev, '#EAB308');
+  }
+  const spMetaEl = document.getElementById('sp-meta');
+  if (spMetaEl) {
+    const prev = sparkData['sp-meta'].vals;
+    prev.push(state.metaShare);
+    if (prev.length > 8) prev.shift();
+    drawSparkline('sp-meta', prev, '#EAB308');
+  }
+  const spAffilEl = document.getElementById('sp-affil');
+  if (spAffilEl) {
+    const prev = sparkData['sp-affil'].vals;
+    prev.push(state.affilShare);
+    if (prev.length > 8) prev.shift();
+    drawSparkline('sp-affil', prev, '#22C55E');
+  }
+
+  // toasts
+  const toast = toasts.find(t => t.t === state.tick);
+  if (toast) showToast(toast.type, toast.title, toast.body);
+
+  // alert log entry (every 3 ticks)
+  if (t % 3 === 0 && alertIdx < alertTemplates.length) {
+    addAlert(alertTemplates[alertIdx++]);
+  }
+
+  updateTime();
+}
+
+// update time every second
+setInterval(updateTime, 1000);
+// update metrics every 5s
+setInterval(tick, 5000);
+
+// initial time
+updateTime();
+</script>
+</body>
+</html>
